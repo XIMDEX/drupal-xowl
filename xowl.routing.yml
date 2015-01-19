@@ -1,0 +1,18 @@
+xowl.description:
+  path: 'admin/config/xowl'
+  defaults:
+    _controller: '\Drupal\xowl\Controller\XowlController::description'
+  requirements:
+    _access: 'TRUE'
+xowl.server:
+  path: 'admin/config/xowl/server'
+  defaults:
+    _form: '\Drupal\xowl\Form\ServerForm' 
+  requirements:
+    _access: 'TRUE'
+xowl.enhance:
+  path: 'xowl/enhance'
+  defaults:
+    _controller: '\Drupal\xowl\Controller\XowlEnhancerController::enhance'
+  requirements:
+    _access: 'TRUE'

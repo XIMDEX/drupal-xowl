@@ -1,0 +1,9 @@
+name: XOwl
+description: XOwl module for Drupal. Allows semantic tagging and advanced features through XOwl
+core: 8.x
+package: Semantic
+version: 0.2.2
+type: module
+dependencies:
+    - ckeditor
+configure: xowl.admin_settings

@@ -1,0 +1,146 @@
+<?php
+
+/**
+ * @file
+ * Module to interact with Xowl for semantic tagging
+ * @author Ximdex <dev@ximdex.com>
+ */
+
+function xowl_install() {
+    Drupal::config('xowl.settings')->set('endpoint', 'http://localhost/xowl')->save();
+}
+/**
+ * <p>Implements hook_help().</p>
+ *
+ * <p>Displays help and module information</p>
+ *
+ * @param string path
+ *   path of the site we're using to display help
+ * @param array arg
+ *   Array that holds the current path as returned from arg() function
+ */
+
+function xowl_help($path, $arg)
+{
+    switch ($path) {
+        case "admin/help#xowl":
+            return '<p>' . t("A module to provide semantic tagging to Drupal content through Xowl") . '</p>';
+            break;
+
+        default:
+            break;
+    }
+}
+ 
+
+/**
+ * <p>Configuration form for Xowl module</p>
+ */
+function xowl_server_configuration_form()
+{
+    $form = array();
+
+    $form['overview'] = array(
+        '#markup' => t('This interface allows the user to integrate the XOwl module with Drupal'),
+        '#prefix' => '<p>',
+        '#suffix' => '</p>',
+    );
+
+    $form['xowl_endpoint'] = array(
+        '#title' => t('Endpoint'),
+        '#description' => t('Set the endpoint of the XOwl server. Example: http://domain.com:port/xowl'),
+        '#type' => 'textfield',
+        '#required' => TRUE,
+        '#default_value' => \Drupal::config()->get('xowl_endpoint', 'http://localhost/xowl'),
+    );
+
+    return system_settings_form($form);
+}
+ 
+/**
+ * <p>Implements hook_form_alter()</p>
+ * <p>Modify the edit form to include some JS variables needed to decide whether the enhancer button must be enabled or not</p>
+ */
+function xowl_form_node_form_alter(&$form, &$form_state, $form_id) {
+
+    $nodeType  = $form_state->getFormObject()->getEntity()->getType()   ;
+
+
+    $config = \Drupal::config('xowl.settings');
+    $endpoint  = $config->get('endpoint');
+
+
+
+     $form['#attached'] = array(
+    'css' => array(drupal_get_path('module', 'xowl') . '/css/xowl.module.css'),
+  );
+
+    $form['#attached']['js'][] = array(
+        'data' => array( 'xowl' => array(
+
+            'enable_xowl' => 1,
+            "xowl_path" => drupal_get_path('module', 'xowl'),
+            "basedir" => base_path() . drupal_get_path('module', 'xowl'),
+           "url" =>   ('/index.php/xowl/enhance' ) ,
+
+
+
+        )),
+        'type' => 'setting',
+    );
+
+    $form['suggestions'] = array(
+        '#title' => t('Suggestions'),
+        '#description' => t('Selected suggestions'),
+        '#type' => 'hidden',
+        '#attributes' => array('id' => "suggestions_field"),
+        '#weight' => 0,
+       
+        );
+
+ 
+    
+}
+
+
+function xowl_editor_js_settings_alter(array &$settings) {
+    if (empty($settings['editor']['formats'])) {
+        return;
+    }
+    foreach ($settings['editor']['formats'] as $format => $setting) {
+    $settings['editor']['formats'][$format]['editorSettings']['extraPlugins'] .= ',xowl'  ;
+    $settings['editor']['formats'][$format]['editorSettings']['drupalExternalPlugins']['xowl'] = 'http://localhost:8081/' .  drupal_get_path('module', 'xowl') . '/js/plugins/xowl/xowl.js' ;
+
+
+        $settings['editor']['formats'][$format]['editorSettings']['toolbar'][]= array(
+            'name' => 'xowl',
+            'items' => array(
+            'xowl'),
+
+        );
+
+     // print_R( $settings['editor']['formats'][$format] ) ;
+     //die();
+    }
+}
+
+
+
+/**
+ * <p>Callback function for 'xowl/enhance' endpoint</p>
+ *
+ * <p>This function calls Ximdex XOwl endpoint to analyze and enhance the content</p>
+ */
+function xowl_enhance_content()
+{
+    module_load_include('php', 'xowl', 'includes/XowlStanbolService');
+    $xowlEndpoint = \Drupal::config()->get('xowl_endpoint');
+    $content = filter_input(INPUT_POST, 'content');
+    $service = new XowlStanbolService($xowlEndpoint);
+    $data = $service->suggest($content)->getData();
+    $data["text"] = $content;
+
+    /*$result = '{"text":"Paris is the capital of France","semantic":{"people":[],"places":{"France":{"confidence":"98,52","type":"dPlace","isSemantic":1,"entities":[{"uri": "http://dbpedia.org/resource/France", "label": "France"}, {"uri": "http://dbpedia.org/resource/New_France", "label": "New France"}], "others":[{"@id":"urn:enhancement-3fb82789-1382-1540-f713-2fe4cbdddca8","@type":["enhancer:Enhancement","enhancer:TextAnnotation"],"dc:created":"2014-06-19T15:46:14.388Z","dc:creator":"org.apache.stanbol.enhancer.engines.opennlp.impl.NamedEntityExtractionEnhancementEngine","dc:type":"dbp-ont:Place","enhancer:confidence":0.9851806,"enhancer:end":30,"enhancer:extracted-from":"urn:content-item-sha1-2e431f6d6fb424581608115debe9f3d98e1f7fd9","enhancer:selected-text":{"@language":"en","@value":"France"},"enhancer:selection-context":{"@language":"en","@value":"Paris is the capital of France"},"enhancer:start":24}]},"Paris":{"confidence":"63,98","type":"dPlace","isSemantic":1,"entities":[{"uri": "http://dbpedia.org/resource/Paris", "label": "Paris"}, {"uri": "http://dbpedia.org/resource/Paris_Commune", "label": "Paris Commune"}], "others":[{"@id":"urn:enhancement-5cbd8c9e-e4b9-45cc-495e-bace5dee71af","@type":["enhancer:Enhancement","enhancer:TextAnnotation"],"dc:created":"2014-06-19T15:46:14.388Z","dc:creator":"org.apache.stanbol.enhancer.engines.opennlp.impl.NamedEntityExtractionEnhancementEngine","dc:type":"dbp-ont:Place","enhancer:confidence":0.63981426,"enhancer:end":5,"enhancer:extracted-from":"urn:content-item-sha1-2e431f6d6fb424581608115debe9f3d98e1f7fd9","enhancer:selected-text":{"@language":"en","@value":"Paris"},"enhancer:selection-context":{"@language":"en","@value":"Paris is the capital of France"},"enhancer:start":0}]}},"orgs":[]},"status":"ok"}';*/
+    header('Content-type: application/json');
+    echo json_encode($data);
+}
