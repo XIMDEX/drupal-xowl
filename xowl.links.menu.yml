@@ -1,11 +1,5 @@
-xowl.description:
-  title: 'Xowl settings'
-  description: 'Configuration for XOwl module'
-  route_name: xowl.server
-  parent: 'system.admin_config_development'
-  menu_name: xowl
 xowl.server:
-  title: 'Config editor'
+  title: 'Xowl settings'
   description: 'Edit configuration.'
   route_name: xowl.server
   parent: 'system.admin_config_development'

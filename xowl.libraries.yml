@@ -1,0 +1,9 @@
+xowl:
+  version: 1.x
+  css:
+    theme:
+      css/xowl.module.css: {}
+  js:
+    js/test.js: {}
+  dependencies:
+    - core/jquery
