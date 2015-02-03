@@ -31,7 +31,7 @@ function xowl_help($path, $arg)
             break;
     }
 }
- 
+
 
 /**
  * <p>Configuration form for Xowl module</p>
@@ -56,7 +56,7 @@ function xowl_server_configuration_form()
 
     return system_settings_form($form);
 }
- 
+
 /**
  * <p>Implements hook_form_alter()</p>
  * <p>Modify the edit form to include some JS variables needed to decide whether the enhancer button must be enabled or not</p>
@@ -71,23 +71,23 @@ function xowl_form_node_form_alter(&$form, &$form_state, $form_id) {
 
 
 
-     $form['#attached'] = array(
-    'css' => array(drupal_get_path('module', 'xowl') . '/css/xowl.module.css'),
-  );
+    $xowlSettings = array(
+        'enabled' => 1 ,
+        'path' => drupal_get_path('module', 'xowl') ,
+        "basedir" => base_path() . drupal_get_path('module', 'xowl'),
+        "url" =>    '/xowl/enhance'   ,
 
-    $form['#attached']['js'][] = array(
-        'data' => array( 'xowl' => array(
-
-            'enable_xowl' => 1,
-            "xowl_path" => drupal_get_path('module', 'xowl'),
-            "basedir" => base_path() . drupal_get_path('module', 'xowl'),
-           "url" =>   ('/index.php/xowl/enhance' ) ,
-
-
-
-        )),
-        'type' => 'setting',
     );
+
+
+    $form['#attached']['html_head'][] = [
+        [
+            '#tag' => 'script',
+            '#value' => 'xowlSettings = ' . json_encode( $xowlSettings ) . ' ;' ,
+        ],
+        'xowl-settings'
+    ];
+
 
     $form['suggestions'] = array(
         '#title' => t('Suggestions'),
@@ -95,11 +95,11 @@ function xowl_form_node_form_alter(&$form, &$form_state, $form_id) {
         '#type' => 'hidden',
         '#attributes' => array('id' => "suggestions_field"),
         '#weight' => 0,
-       
-        );
 
- 
-    
+    );
+
+
+
 }
 
 
@@ -108,19 +108,17 @@ function xowl_editor_js_settings_alter(array &$settings) {
         return;
     }
     foreach ($settings['editor']['formats'] as $format => $setting) {
-    $settings['editor']['formats'][$format]['editorSettings']['extraPlugins'] .= ',xowl'  ;
-    $settings['editor']['formats'][$format]['editorSettings']['drupalExternalPlugins']['xowl'] = 'http://localhost:8081/' .  drupal_get_path('module', 'xowl') . '/js/plugins/xowl/xowl.js' ;
+        $settings['editor']['formats'][$format]['editorSettings']['extraPlugins'] .= ',xowl'  ;
+        $settings['editor']['formats'][$format]['editorSettings']['drupalExternalPlugins']['xowl'] = '/' .  drupal_get_path('module', 'xowl') . '/js/plugins/xowl/xowl.js' ;
 
 
         $settings['editor']['formats'][$format]['editorSettings']['toolbar'][]= array(
             'name' => 'xowl',
             'items' => array(
-            'xowl'),
+                'xowl'),
 
         );
 
-     // print_R( $settings['editor']['formats'][$format] ) ;
-     //die();
     }
 }
 
@@ -139,6 +137,7 @@ function xowl_enhance_content()
     $service = new XowlStanbolService($xowlEndpoint);
     $data = $service->suggest($content)->getData();
     $data["text"] = $content;
+
     header('Content-type: application/json');
     echo json_encode($data);
 }
