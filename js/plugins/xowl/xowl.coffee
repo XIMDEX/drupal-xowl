@@ -1,15 +1,14 @@
 ###
 @author Ximdex <dev@ximdex.com>
 ###
-
 window.ceditor = null 
 selectedTextAnnotation = null 
 currentSelectedSuggestion = null 
 suggestions_field = jQuery '#suggestions_field' 
 (($) ->
     CKEDITOR.config.allowedContent = true
-    if  drupalSettings.xowl != undefined
-        icon = "#{drupalSettings.xowl.basedir}/js/plugins/xowl/icons/xowl_enhance_plugin_button.png"
+    if  xowlSettings != undefined
+        icon = "#{xowlSettings.basedir}/js/plugins/xowl/icons/xowl_enhance_plugin_button.png"
     else 
         icon = 'abbr'
 
@@ -17,11 +16,11 @@ suggestions_field = jQuery '#suggestions_field'
         icons: icon
         init: (editor) ->
             window.parent.editor = editor 
-            if  drupalSettings.xowl is undefined
+            if  xowlSettings is undefined
                 return
-            if  drupalSettings.xowl.enable_xowl == undefined or  drupalSettings.xowl.enable_xowl != 1 
+            if  xowlSettings.enabled == undefined or  xowlSettings.enabled != 1 
                 return 
-            if  CKEDITOR.xowl is  undefined 
+            if  CKEDITOR.xowl is undefined 
                 CKEDITOR.xowl = 
                     entities: {}
                     suggestions: {}
@@ -37,13 +36,13 @@ suggestions_field = jQuery '#suggestions_field'
                     $loader = $ "<div/>", 
                         class: 'loader' 
                     $("<img/>")
-                    .attr 'src', "#{drupalSettings.xowl.basedir}/js/plugins/xowl/icons/loader.gif"
+                    .attr 'src', "#{xowlSettings.basedir}/js/plugins/xowl/icons/loader.gif"
                     .appendTo $loader 
                     #
                     $.ajax
                         type: 'POST' 
                         dataType: "json" 
-                        url: drupalSettings.xowl.url  
+                        url: xowlSettings.url  
                         async: false,
                         data: 
                             content: content
@@ -63,7 +62,7 @@ suggestions_field = jQuery '#suggestions_field'
                         return
                     return
                 #
-                CKEDITOR.dialog.add 'xowl_dialog',  (api)->
+                CKEDITOR.dialog.add 'xowl_dialog',  ( api )->
                     dialogDefinition = 
                         title: 'Select Entity Dialog'
                         minWidth: 390
@@ -78,7 +77,8 @@ suggestions_field = jQuery '#suggestions_field'
                                         type: 'select',
                                         id: 'xowl_entities'
                                         label: 'Select Entities'
-                                        items: []
+                                        # style: 'border: 2px solid #c00;'
+                                        items: [ ]
                                         onChange: (e) ->
                                             CKEDITOR.xowl.suggestions[selectedTextAnnotation] = this.getValue()
                                             return
@@ -118,7 +118,7 @@ suggestions_field = jQuery '#suggestions_field'
                             CKEDITOR.xowl.suggestions[ selectedTextAnnotation ] = currentSelectedSuggestion 
                             return
                         onShow: () ->
-                            dialogTabSelect = this.getContentElement 'tab_entities', 'xowl_entities'   
+                            dialogTabSelect = this.getContentElement 'tab_entities', 'xowl_entities'  
                             entities = CKEDITOR.xowl.entities[ selectedTextAnnotation ]
                             CKEDITOR.xowl.tempTypes = {}
                             dialogTabSelect.clear()
@@ -129,42 +129,37 @@ suggestions_field = jQuery '#suggestions_field'
                             dialogTabSelect.setValue CKEDITOR.xowl.suggestions[ selectedTextAnnotation ] 
                             currentSelectedSuggestion = CKEDITOR.xowl.suggestions[ selectedTextAnnotation ] 
                             return
-                    #
-                    editor.on 'contentDom', (e) ->
-                        $ editor.document.$ 
-                        .unbind 'keyup' 
-                        .bind 'keyup', ( evt ) ->
-                            if evt.keyCode == 8 || evt.keyCode == 46 
-                                evt.stopPropagation() 
-                                $ editor.document.$ 
-                                .find "[data-cke-annotation]"
-                                .each  (i,element) ->
-                                    $el = $(element)
-                                    if $el.html() != $el.attr("data-cke-annotation") 
-                                        delete CKEDITOR.xowl.suggestions[ $el.attr("data-cke-annotation") ] 
-                                        $el.replaceWith $el.html() 
-                                    return 
-                                fillSuggestionsField()
-                            return 
-                        $ editor.document.$ 
-                        .find '.xowl-suggestion' 
-                        .unbind 'click' 
-                        .bind 'click' ,   ()->
-                            selectedTextAnnotation = $(this).data 'cke-annotation' 
-                            openXowlDialog e.editor 
-                            return
-                        return
-                    editor.on 'change',  (e) ->
-                        $ e.editor.window.getFrame().$ 
-                        .contents()
-                        .find '.xowl-suggestion' 
-                        .unbind 'click'
-                        .bind  'click' ,  () ->
-                            selectedTextAnnotation = $(this).data 'cke-annotation' 
-                            openXowlDialog e.editor 
-                            return
-                        return
                     dialogDefinition
+                    #
+                editor.on 'contentDom', (e) ->
+                    $ editor.document.$ 
+                    .unbind 'keyup' 
+                    .bind 'keyup', ( evt ) ->
+                        if evt.keyCode == 8 || evt.keyCode == 46 
+                            evt.stopPropagation() 
+                            $ editor.document.$ 
+                            .find "[data-cke-annotation]"
+                            .each  (i,element) ->
+                                $el = $(element)
+                                if $el.html() != $el.attr("data-cke-annotation") 
+                                    delete CKEDITOR.xowl.suggestions[ $el.attr("data-cke-annotation") ] 
+                                    $el.replaceWith $el.html() 
+                                return 
+                            fillSuggestionsField()
+                        return 
+
+                editor.on 'change',  (e) ->
+                    $ e.editor.window.getFrame().$ 
+                    .contents()
+                    .find '.xowl-suggestion' 
+                    .unbind 'click'
+                    .bind  'click' ,  () ->
+                        selectedTextAnnotation = $(this).data 'cke-annotation' 
+                        # selectedTextAnnotation = $(this).html()
+                        openXowlDialog e.editor 
+                        return
+                    return
+                
 
             
 

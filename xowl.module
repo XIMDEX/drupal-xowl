@@ -109,7 +109,7 @@ function xowl_editor_js_settings_alter(array &$settings) {
     }
     foreach ($settings['editor']['formats'] as $format => $setting) {
         $settings['editor']['formats'][$format]['editorSettings']['extraPlugins'] .= ',xowl'  ;
-        $settings['editor']['formats'][$format]['editorSettings']['drupalExternalPlugins']['xowl'] = '/' .  drupal_get_path('module', 'xowl') . '/js/plugins/xowl/xowl.js' ;
+        $settings['editor']['formats'][$format]['editorSettings']['drupalExternalPlugins']['xowl'] = base_path()  .  drupal_get_path('module', 'xowl') . '/js/plugins/xowl/xowl.js' ;
 
 
         $settings['editor']['formats'][$format]['editorSettings']['toolbar'][]= array(
@@ -122,7 +122,14 @@ function xowl_editor_js_settings_alter(array &$settings) {
     }
 }
 
+function xowl_ckeditor_css_alter( array &$settings ) {
 
+    array_push( $settings,  base_path() . drupal_get_path('module', 'xowl') . '/css/xowl.module.css'  ) ;
+
+   
+
+
+}
 
 /**
  * <p>Callback function for 'xowl/enhance' endpoint</p>
