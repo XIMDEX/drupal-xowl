@@ -23,29 +23,23 @@ use Drupal\ckeditor\CKEditorPluginInterface ;
  */
 class Xowl extends CKEditorPluginBase implements CKEditorPluginInterface {
     public function isInternal() {
-         error_log( 'isInternal:' . $this->getPluginId()  );
-        
+         
         return false  ;
     }
     public function getDependencies(Editor $editor) { 
-        error_log( 'dependencies' );
-        return array() ;
+         return array() ;
     }
   /**
    * {@inheritdoc}
    */
   public function getFile() {
-     error_log( 'fichero' );
-    error_log( drupal_get_path('module', 'xowl') . '/js/plugins/xowl/plugin.js'  ) ;
-    return drupal_get_path('module', 'xowl') . '/js/plugins/xowl/plugin.js';
+     return drupal_get_path('module', 'xowl') . '/js/plugins/xowl/plugin.js';
   }
 
   /**
    * {@inheritdoc}
    */
   public function getLibraries(Editor $editor) {
-     error_log( 'librerias' );
-    print_R( $editor ) ;
     return array(
   //   'core/drupal.ajax',
     );
@@ -55,9 +49,7 @@ class Xowl extends CKEditorPluginBase implements CKEditorPluginInterface {
    * {@inheritdoc}
    */
   public function getConfig(Editor $editor) {
-    print_R ($editor) ;
-    error_log( 'getConfig') ; 
-    return array(
+      return array(
 //    'drupalLink_dialogTitleAdd' => t('Add Link'),
   //    'drupalLink_dialogTitleEdit' => t('Edit Link'),
     );
@@ -67,8 +59,7 @@ class Xowl extends CKEditorPluginBase implements CKEditorPluginInterface {
    * {@inheritdoc}
    */
   public function getButtons() {
-    error_log( 'botones') ;
-     return array(
+      return array(
     //       'TextColor' => array(
     //    'label' => t('Text Color'),
      //  ),
@@ -76,7 +67,6 @@ class Xowl extends CKEditorPluginBase implements CKEditorPluginInterface {
     );
   }
   public function getPluginDefinition( ) {
-     error_log( 'definición' );
 
   }
 
